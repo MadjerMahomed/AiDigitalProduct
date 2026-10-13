@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local AI Digital Product & Media Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-sky-500 selection:text-slate-950" onload="loadProductsHistory()">
+  
+  <div class="max-w-7xl mx-auto px-6 py-10 space-y-10">
+    
+    <!-- Header Navbar -->
+    <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-800/80 pb-6 gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-3">
+          <span class="inline-block w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white">Autonomous Product Studio</h1>
+        </div>
+        <p class="text-slate-400 text-sm">Generate real planners, guides, covers, and vertical promo reels locally.</p>
+      </div>
+      
+      <!-- Action Controls & History Switcher -->
+      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+        <select id="productSelect" onchange="switchProduct(this.value)" class="bg-slate-900 border border-slate-800 text-sm rounded-xl px-4 py-3 text-white focus:outline-none focus:border-sky-500 max-w-xs">
+          <option value="">📂 Past Products Library...</option>
+        </select>
+        <input type="text" id="topicInput" placeholder="New Niche (e.g. Budget Planner)" class="bg-slate-900 border border-slate-800 text-sm rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 w-52">
+        <button id="runBtn" onclick="runAgentPipeline()" class="bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-slate-950 font-bold px-5 py-3 rounded-xl shadow-lg shadow-sky-500/20 transition-all cursor-pointer text-sm">
+          + New Product
+        </button>
+        <button id="varBtn" onclick="generateVariations()" class="hidden bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30 font-semibold px-4 py-3 rounded-xl transition-all text-sm cursor-pointer">
+          ✨ New Hook
+        </button>
+      </div>
+    </header>
+
+    <!-- Loading State Dashboard -->
+    <div id="loading" class="hidden">
+      <div class="bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-12 rounded-2xl text-center space-y-6 shadow-2xl">
+        <div class="relative w-16 h-16 mx-auto">
+          <div class="absolute inset-0 rounded-full border-4 border-sky-500/20"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-sky-400 border-t-transparent animate-spin"></div>
+        </div>
+        <div class="space-y-2">
+          <h3 class="text-lg font-semibold text-white">Agent is Building Your Digital Product...</h3>
+          <p class="text-slate-400 text-sm">Drafting full planner content, synthesizing voiceover audio, and rendering visual assets.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Dashboard Grid -->
+    <div id="results" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Left Column: Product Blueprint & Files (7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- Product Blueprint Card -->
+        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-7 rounded-2xl shadow-xl space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider bg-sky-950/60 px-3 py-1 rounded-full border border-sky-800/50">Product Blueprint</span>
+            <div class="flex gap-2">
+              <a id="downloadFileBtn" href="#" download class="text-xs text-slate-950 font-bold bg-sky-400 hover:bg-sky-300 px-3 py-1.5 rounded-lg transition">📥 Download Planner File (.md)</a>
+              <button onclick="copyText('productDesc', this)" class="text-xs text-slate-400 hover:text-white bg-slate-800/80 px-3 py-1.5 rounded-lg transition">Copy</button>
+            </div>
+          </div>
+          <h2 id="productTitle" class="text-2xl font-bold text-white tracking-tight"></h2>
+          <p id="productDesc" class="text-slate-300 text-sm leading-relaxed whitespace-pre-line bg-slate-950/50 p-4 rounded-xl border border-slate-800/60 max-h-72 overflow-y-auto"></p>
+        </div>
+
+        <!-- Social Media Caption Card -->
+        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-7 rounded-2xl shadow-xl space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800/50">Social Media Caption</span>
+            <button onclick="copyText('captionText', this)" class="text-xs text-slate-400 hover:text-white bg-slate-800/80 px-3 py-1.5 rounded-lg transition">Copy Caption</button>
+          </div>
+          <p id="captionText" class="text-slate-300 text-sm leading-relaxed whitespace-pre-line bg-slate-950/50 p-4 rounded-xl border border-slate-800/60"></p>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Visual Assets (5 Cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Cover Graphic Card -->
+        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-purple-400 uppercase tracking-wider bg-purple-950/60 px-3 py-1 rounded-full border border-purple-800/50">Promo Cover Graphic</span>
+            <a id="downloadCoverBtn" href="#" download="product_cover.png" class="text-xs text-sky-400 hover:underline">Download Cover</a>
+          </div>
+          <div class="rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-inner">
+            <img id="coverImg" class="w-full object-cover aspect-square" src="" alt="Cover Graphic">
+          </div>
+        </div>
+
+        <!-- Video Reel Card -->
+        <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-pink-400 uppercase tracking-wider bg-pink-950/60 px-3 py-1 rounded-full border border-pink-800/50">Vertical Promo Reel</span>
+            <a id="downloadVideoBtn" href="#" download="promo_video.mp4" class="text-xs text-sky-400 hover:underline">Download MP4</a>
+          </div>
+          <div class="rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-inner flex justify-center">
+            <video id="promoVideo" controls class="w-full max-h-[420px] rounded-lg aspect-[9/16] object-contain bg-black"></video>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    async function loadProductsHistory() {
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        if (data.status === 'success') {
+          const select = document.getElementById('productSelect');
+          select.innerHTML = '<option value="">📂 Past Products Library...</option>';
+          data.products.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.innerText = p.product_title;
+            if (p.id === data.active_id) opt.selected = true;
+            select.appendChild(opt);
+          });
+
+          if (data.active_id && data.products.length > 0) {
+            const activeProd = data.products.find(p => p.id === data.active_id) || data.products[0];
+            displayProduct(activeProd);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load history");
+      }
+    }
+
+    async function switchProduct(productId) {
+      if (!productId) return;
+      try {
+        const res = await fetch('/api/switch-product', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: productId })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          displayProduct(data.data);
+        }
+      } catch (err) {
+        alert("Failed to switch product.");
+      }
+    }
+
+    async function runAgentPipeline() {
+      const topic = document.getElementById('topicInput').value;
+      await executeRequest('/api/run-agent', { topic });
+    }
+
+    async function generateVariations() {
+      await executeRequest('/api/generate-variations', {});
+    }
+
+    async function executeRequest(endpoint, payload) {
+      const loading = document.getElementById('loading');
+      const results = document.getElementById('results');
+
+      loading.classList.remove('hidden');
+      results.classList.add('hidden');
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+
+        if (res.status === 'success') {
+          displayProduct(res.data);
+          await loadProductsHistory();
+        } else {
+          alert('Error: ' + res.detail);
+        }
+      } catch (err) {
+        alert('Failed to connect to backend server.');
+      } finally {
+        loading.classList.add('hidden');
+      }
+    }
+
+    function displayProduct(prod) {
+      document.getElementById('productTitle').innerText = prod.product_title;
+      document.getElementById('productDesc').innerText = prod.product_description + "\n\n--- Full Content ---\n" + (prod.full_content || "");
+      document.getElementById('captionText').innerText = prod.caption;
+      
+      const timestamp = new Date().getTime();
+      document.getElementById('coverImg').src = prod.image_url + '?t=' + timestamp;
+      document.getElementById('downloadCoverBtn').href = prod.image_url + '?t=' + timestamp;
+
+      document.getElementById('promoVideo').src = prod.video_url + '?t=' + timestamp;
+      document.getElementById('downloadVideoBtn').href = prod.video_url + '?t=' + timestamp;
+
+      document.getElementById('downloadFileBtn').href = prod.file_url;
+      document.getElementById('downloadFileBtn').download = prod.product_title.replace(/[^a-zA-Z0-9]/g, '_') + '.md';
+
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('varBtn').classList.remove('hidden');
+    }
+
+    function copyText(elementId, buttonEl) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = buttonEl.innerText;
+        buttonEl.innerText = 'Copied!';
+        buttonEl.classList.add('text-emerald-400');
+        setTimeout(() => {
+          buttonEl.innerText = originalText;
+          buttonEl.classList.remove('text-emerald-400');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

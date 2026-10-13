@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+ollama
+duckduckgo-search
+Pillow
+moviepy==1.0.3
+gTTS
